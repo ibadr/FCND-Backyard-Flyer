@@ -41,7 +41,8 @@ class BackyardFlyer(Drone):
 
         This triggers when `MsgID.LOCAL_POSITION` is received and self.local_position contains new data
         """
-        pass
+        print("INSIDE: local_position_callback")
+        #print(self.local_position)
 
     def velocity_callback(self):
         """
@@ -49,7 +50,8 @@ class BackyardFlyer(Drone):
 
         This triggers when `MsgID.LOCAL_VELOCITY` is received and self.local_velocity contains new data
         """
-        pass
+        print("INSIDE: velocity_callback")
+        #print(self.local_velocity)
 
     def state_callback(self):
         """
@@ -57,14 +59,20 @@ class BackyardFlyer(Drone):
 
         This triggers when `MsgID.STATE` is received and self.armed and self.guided contain new data
         """
-        pass
+        print("INSIDE: state_callback")
+        if self.flight_state == States.MANUAL:
+                self.arming_transition()
+        elif self.flight_state == States.ARMING:
+                self.takeoff_transition()
+        #print(self.armed)
+        #print(self.guided)
 
     def calculate_box(self):
         """TODO: Fill out this method
         
         1. Return waypoints to fly a box
         """
-        pass
+        print("INSIDE: calculate_box")
 
     def arming_transition(self):
         """TODO: Fill out this method
@@ -75,6 +83,11 @@ class BackyardFlyer(Drone):
         4. Transition to the ARMING state
         """
         print("arming transition")
+        self.take_control()
+        self.arm()
+        self.set_home_position(self.global_position[0], self.global_position[1],self.global_position[2])
+        self.flight_state = States.ARMING
+        
 
     def takeoff_transition(self):
         """TODO: Fill out this method
@@ -84,6 +97,9 @@ class BackyardFlyer(Drone):
         3. Transition to the TAKEOFF state
         """
         print("takeoff transition")
+        self.target_position[2] = 3.0
+        self.takeoff(self.target_position[2])
+        self.flight_state = States.TAKEOFF
 
     def waypoint_transition(self):
         """TODO: Fill out this method
