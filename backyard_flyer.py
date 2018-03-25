@@ -44,10 +44,20 @@ class BackyardFlyer(Drone):
         print("INSIDE: local_position_callback")
         # Takeoff to Waypoint transition occurs here
         if self.flight_state == States.TAKEOFF:
-            if np.size(self.all_waypoints) == 0:
+            if len(self.all_waypoints) == 0:
                 self.all_waypoints = self.calculate_box()
             if -1.0 * self.local_position[2] > 0.95 * self.target_position[2]:
                 self.waypoint_transition()
+        elif self.flight_state == States.WAYPOINT:
+            # check if we are within a small neighborhood around target
+            if np.linalg.norm(self.target_position[0:2] - self.local_position[0:2]) < 1.0:
+                if len(self.all_waypoints) > 0:
+                    print(self.boxTargetPointAt)
+                    print(len(self.all_waypoints))
+                    if self.boxTargetPointAt < len(self.all_waypoints):
+                        self.waypoint_transition()
+                    else:
+                        self.landing_transition()
         #print(self.local_position)
 
     def velocity_callback(self):
@@ -115,8 +125,8 @@ class BackyardFlyer(Drone):
         1. Command the next waypoint position
         2. Transition to WAYPOINT state
         """
-        if np.size(self.all_waypoints) > 0:
-            if self.boxTargetPointAt < np.size(self.all_waypoints):
+        if len(self.all_waypoints) > 0:
+            if self.boxTargetPointAt < len(self.all_waypoints):
                 self.target_position = self.all_waypoints[self.boxTargetPointAt]
                 self.cmd_position(self.target_position[0], self.target_position[1], self.target_position[2], 0.0)
                 self.boxTargetPointAt += 1
