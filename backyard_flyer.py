@@ -42,6 +42,12 @@ class BackyardFlyer(Drone):
         This triggers when `MsgID.LOCAL_POSITION` is received and self.local_position contains new data
         """
         print("INSIDE: local_position_callback")
+        # Takeoff to Waypoint transition occurs here
+        if self.flight_state == States.TAKEOFF:
+            if np.size(self.all_waypoints) == 0:
+                self.all_waypoints = self.calculate_box()
+            if -1.0 * self.local_position[2] > 0.95 * self.target_position[2]:
+                self.waypoint_transition()
         #print(self.local_position)
 
     def velocity_callback(self):
@@ -68,14 +74,16 @@ class BackyardFlyer(Drone):
         #print(self.guided)
 
     def calculate_box(self):
-        """TODO: Fill out this method
+        """
         
         1. Return waypoints to fly a box
         """
         print("INSIDE: calculate_box")
+        self.boxTargetPointAt = 0
+        return [[10.0, 0.0, 3.0], [10.0, 10.0, 3.0], [0.0, 10.0, 3.0], [0.0, 0.0, 3.0]]
 
     def arming_transition(self):
-        """TODO: Fill out this method
+        """
         
         1. Take control of the drone
         2. Pass an arming command
@@ -90,7 +98,7 @@ class BackyardFlyer(Drone):
         
 
     def takeoff_transition(self):
-        """TODO: Fill out this method
+        """
         
         1. Set target_position altitude to 3.0m
         2. Command a takeoff to 3.0m
@@ -102,12 +110,18 @@ class BackyardFlyer(Drone):
         self.flight_state = States.TAKEOFF
 
     def waypoint_transition(self):
-        """TODO: Fill out this method
+        """
     
         1. Command the next waypoint position
         2. Transition to WAYPOINT state
         """
+        if np.size(self.all_waypoints) > 0:
+            if self.boxTargetPointAt < np.size(self.all_waypoints):
+                self.target_position = self.all_waypoints[self.boxTargetPointAt]
+                self.cmd_position(self.target_position[0], self.target_position[1], self.target_position[2], 0.0)
+                self.boxTargetPointAt += 1
         print("waypoint transition")
+        self.flight_state = States.WAYPOINT
 
     def landing_transition(self):
         """TODO: Fill out this method
